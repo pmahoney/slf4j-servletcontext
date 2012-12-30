@@ -5,6 +5,14 @@ This is a simple logger with minimal configuration.  It is an
 [SLF4J](http://www.slf4j.org/) backend that forwards logs to a
 `ServletContext` object.
 
+Declare a dependency on `slf4j-servletcontext`:
+
+    <dependency>
+      <groupId>com.commongroundpublishing</groupId>
+      <artifactId>slf4j-servletcontext</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
 To initialize `slf4j-servletcontext`, add to `web.xml`:
 
     <listener>
