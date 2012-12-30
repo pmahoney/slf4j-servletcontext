@@ -85,7 +85,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase {
     /**
      * Is the given log level currently enabled?
      *
-     * @param logLevel is this level enabled?
+     * @param level is this level enabled?
      */
     protected boolean isLevelEnabled(Level level) {
         // log level are numerically ordered so can use simple numeric
