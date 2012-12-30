@@ -23,6 +23,7 @@
   <scm>
     <url>http://github.com/commonground/slf4j-servletcontext</url>
     <connection>scm:git:git@github.com:commonground/slf4j-servletcontext.git</connection>
+    <developerConnection>scm:git:git@github.com:commonground/slf4j-servletcontext.git</developerConnection>
   </scm>
   <developers>
     <developer>
