@@ -30,12 +30,17 @@
       <name>Patrick Mahoney</name>
       <email>patrick.mahoney@commongroundpublishing.com</email>
     </developer>
+    <developer>
+      <id>arkanovicz</id>
+      <name>Claude Brisson</name>
+      <email>claude@renegat.net</email>
+    </developer>
   </developers>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <junit.version>4.10</junit.version>
-    <slf4j.version>1.6.6</slf4j.version>
+    <slf4j.version>1.7.12</slf4j.version>
     <servlet.version>3.0.1</servlet.version>
   </properties>
   <dependencies>

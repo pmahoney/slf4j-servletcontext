@@ -32,7 +32,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase {
     
     // private static final Object lock = new Object();
     
-    private static ServletContext CONTEXT;
+    private static ServletContext CONTEXT = null;
     
     private static Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -90,7 +90,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase {
     protected boolean isLevelEnabled(Level level) {
         // log level are numerically ordered so can use simple numeric
         // comparison
-        return (level.getValue() >= getCurrentLogLevel().getValue());
+        return (CONTEXT != null && level.getValue() >= getCurrentLogLevel().getValue());
     }
 
     private void log(Level level, String message, Throwable t) {
