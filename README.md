@@ -13,7 +13,7 @@ Declare a dependency on `slf4j-servletcontext`:
       <version>1.0.0</version>
     </dependency>
 
-To initialize `slf4j-servletcontext`, add to `web.xml`:
+If your J2EE container is not complient with servlet API 3.0, to initialize `slf4j-servletcontext`, you have to add to `web.xml`:
 
     <listener>
       <listener-class>com.commongroundpublishing.slf4j.impl.ServletContextLoggerSCL</listener-class>
