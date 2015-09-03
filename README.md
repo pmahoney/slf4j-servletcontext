@@ -5,15 +5,19 @@ This is a simple logger with minimal configuration.  It is an
 [SLF4J](http://www.slf4j.org/) backend that forwards logs to a
 `ServletContext` object.
 
-Declare a dependency on `slf4j-servletcontext`:
+It does support serialization.
+
+The jar itself is not named as slf4j-webapp.jar, because Tomcat will not scan slf4j* files for annotations.
+
+Declare a dependency on `webapp-slf4j-impl`:
 
     <dependency>
       <groupId>com.commongroundpublishing</groupId>
-      <artifactId>slf4j-servletcontext</artifactId>
+      <artifactId>webapp-slf4j-impl</artifactId>
       <version>1.0.0</version>
     </dependency>
 
-If your J2EE container is not complient with servlet API 3.0, to initialize `slf4j-servletcontext`, you have to add to `web.xml`:
+If your J2EE container is not complient with servlet API 3.0, you have to add to `web.xml`:
 
     <listener>
       <listener-class>com.commongroundpublishing.slf4j.impl.ServletContextLoggerSCL</listener-class>

@@ -7,7 +7,7 @@
     <version>7</version>
   </parent>
   <groupId>com.commongroundpublishing</groupId>
-  <artifactId>slf4j-servletcontext</artifactId>
+  <artifactId>webapp-slf4j-impl</artifactId>
   <version>1.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>SLF4J ServletContext Binding</name>

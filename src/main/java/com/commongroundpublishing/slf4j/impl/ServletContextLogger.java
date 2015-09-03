@@ -44,9 +44,12 @@ public final class ServletContextLogger extends MarkerIgnoringBase {
      */
     public static void setServletContext(ServletContext context) {
         CONTEXT = context;
-        final String defaultLevel = CONTEXT.getInitParameter("ServletContextLogger.LEVEL");
-        if (defaultLevel != null) {
-            DEFAULT_LOG_LEVEL = Level.valueOf(defaultLevel.toUpperCase());
+        if (CONTEXT != null)
+        {
+            final String defaultLevel = CONTEXT.getInitParameter("ServletContextLogger.LEVEL");
+            if (defaultLevel != null) {
+                DEFAULT_LOG_LEVEL = Level.valueOf(defaultLevel.toUpperCase());
+            }
         }
     }
     
