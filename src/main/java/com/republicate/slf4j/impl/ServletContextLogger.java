@@ -275,9 +275,9 @@ public final class ServletContextLogger extends MarkerIgnoringBase
      * 
      * @param context
      */
-    public static void setServletContext(ServletContext context)
+    public static void setServletContext(ServletContext ctx)
     {
-        context = context;
+        context = ctx;
         if (context != null)
         {
             final String defaultLevel = context.getInitParameter("ServletContextLogger.LEVEL");
