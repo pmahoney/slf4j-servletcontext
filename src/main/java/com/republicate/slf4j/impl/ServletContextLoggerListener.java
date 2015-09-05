@@ -19,36 +19,26 @@
 
 package com.republicate.slf4j.impl;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 
-import org.slf4j.ILoggerFactory;
-import org.slf4j.Logger;
+/**
+ * An annotated ServletContext listener.
+ *
+ * @author Claude Brisson
+ */
 
-public final class ServletContextLoggerFactory implements ILoggerFactory {
-    
-    final static ServletContextLoggerFactory INSTANCE =
-            new ServletContextLoggerFactory();
-
-    private final Map<String,Logger> map;
-
-    public ServletContextLoggerFactory() {
-        map = new HashMap<String,Logger>();
+@WebListener
+public class ServletContextLoggerListener implements ServletContextListener
+{
+    public void contextInitialized(ServletContextEvent sce)
+    {
+        ServletContextLogger.setServletContext(sce.getServletContext());
     }
 
-    /**
-     * Return an appropriate {@link ServletContextLogger} instance by name.
-     */
-    public Logger getLogger(String name) {
-        Logger logger = null;
-        synchronized (this) {
-            logger = map.get(name);
-            if (logger == null) {
-                logger = new ServletContextLogger(name);
-                map.put(name, logger);
-            }
-        }
-        return logger;
+    public void contextDestroyed(ServletContextEvent sce)
+    {
+        ServletContextLogger.setServletContext(null);
     }
-
 }

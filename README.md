@@ -80,7 +80,7 @@ Placeholders begin with '%' and must only contain alpha-numeric characters.
 Predefined placeholders:
 
 * %date - the timestamp, formatted as "YYYY-MM-DD HH:mm:ss,sss".
-* %level, %Level, %LEVEL - the level in lowercase, standard case or uppercase.
+* %level, %Level, %LEVEL - the level in lowercase, standard case or uppercase (and left-padded to five characters).
 * %logger - the name of the logger (for class names, the package is not shown).
 * %message - the actual log message string
 
