@@ -21,6 +21,8 @@ package com.republicate.slf4j.impl;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.ServletContext;
@@ -35,7 +37,6 @@ import org.slf4j.spi.LocationAwareLogger;
  * @author Patrick Mahoney
  * @author Claude Brisson
  */
-
 
 public final class ServletContextLogger extends MarkerIgnoringBase
 {
@@ -143,71 +144,74 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         LITERAL
     }
 
-    protected static Pattern splitter = Pattern.compile("(?:(%[a-zA-Z0-9]+)|((?!%).+))*");
+    protected static Pattern splitter = Pattern.compile("(?:%[a-zA-Z0-9]+)|(?:[^%]+)", Pattern.DOTALL);
     protected static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
     protected static MDCStore mdcStore = MDCStore.getSingleton();
+
+    public class FormatElem
+    {
+        public ElemType type;
+        public String content = null;
+    }
 
     public class Format
     {
         Format(String str)
         {
+            List lst = new ArrayList();
             Matcher matcher = splitter.matcher(str);
-            if (matcher.matches())
+            while (matcher.find())
             {
-                count = matcher.groupCount();
-                element = new ElemType[count];
-                content = new String[count];
-                for (int group = 0; group < count; ++group)
+                FormatElem element = new FormatElem();
+                lst.add(element);
+                String elem = matcher.group();
+                if (elem.startsWith("%"))
                 {
-                    element[group] = ElemType.LITERAL;
-                    content[group] = "";
-                    String elem = matcher.group(group - 1);
-                    if (elem.startsWith("%"))
+                    if (elem.equals("%date"))
                     {
-                        if (elem.equals("%date"))
-                        {
-                            element[group] = ElemType.DATE;
-                        }
-                        else if (elem.equals("%level"))
-                        {
-                            element[group] = ElemType.LEVEL_LC;
-                        }
-                        else if (elem.equals("%Level"))
-                        {
-                            element[group] = ElemType.LEVEL_SC;
-                        }
-                        else if (elem.equals("%LEVEL"))
-                        {
-                            element[group] = ElemType.LEVEL_UC;
-                        }
-                        else if (elem.equals("%logger"))
-                        {
-                            element[group] = ElemType.LOGGER;
-                        }
-                        else if (elem.equals("%message"))
-                        {
-                            element[group] = ElemType.MESSAGE;
-                        }
-                        else
-                        {
-                            element[group] = ElemType.CONTEXT;
-                            content[group] = elem.substring(1);
-                        }
+                        element.type = ElemType.DATE;
+                    }
+                    else if (elem.equals("%level"))
+                    {
+                        element.type = ElemType.LEVEL_LC;
+                    }
+                    else if (elem.equals("%Level"))
+                    {
+                        element.type = ElemType.LEVEL_SC;
+                    }
+                    else if (elem.equals("%LEVEL"))
+                    {
+                        element.type = ElemType.LEVEL_UC;
+                    }
+                    else if (elem.equals("%logger"))
+                    {
+                        element.type = ElemType.LOGGER;
+                    }
+                    else if (elem.equals("%message"))
+                    {
+                        element.type = ElemType.MESSAGE;
                     }
                     else
                     {
-                        element[group] = ElemType.LITERAL;
-                        content[group] = elem;
+                        element.type = ElemType.CONTEXT;
+                        element.content = elem.substring(1);
                     }
                 }
+                else
+                {
+                    element.type = ElemType.LITERAL;
+                    element.content = elem;
+                }
             }
+            elements = (FormatElem[])lst.toArray(new FormatElem[lst.size()]);
         }
+
         String layout(Level level, String message)
         {
             StringBuilder builder = new StringBuilder(128);
-            for (int i = 0; i < count; ++i)
+            for (FormatElem element : elements)
             {
-                switch (element[i])
+                switch (element.type)
                 {
                     case DATE:
                     {
@@ -241,7 +245,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                     }
                     case CONTEXT:
                     {
-                        String fragment = mdcStore.get(content[i]);
+                        String fragment = mdcStore.get(element.content);
                         if (fragment != null)
                         {
                             builder.append(fragment);
@@ -250,16 +254,14 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                     }
                     case LITERAL:
                     {
-                        builder.append(content[i]);
+                        builder.append(element.content);
                         break;
                     }
                 }
             }
             return builder.toString();
         }
-        private int count = 0;
-        private ElemType element[] = null;
-        private String content[] = null;
+        private FormatElem elements[] = null;
     }
     
     // Servlet context
@@ -267,26 +269,26 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     
     private static Level enabledLevel = Level.INFO;
 
-    private static String defaultFormat = "%date [%level] [%ip] %message\n";
+    private static String defaultFormat = "%logger [%level] [%ip] %message";
 
     /**
      * Set the ServletContext used by all ServletContextLogger objects.  This
      * should be done in a ServletContextListener, e.g. ServletContextLoggerSCL.
      * 
-     * @param context
+     * @param ctx
      */
     public static void setServletContext(ServletContext ctx)
     {
         context = ctx;
         if (context != null)
         {
-            final String defaultLevel = context.getInitParameter("ServletContextLogger.LEVEL");
+            final String defaultLevel = context.getInitParameter("webapp-slf4j-logger.level");
             if (defaultLevel != null)
             {
                 enabledLevel = Level.valueOf(defaultLevel.toUpperCase());
             }
 
-            final String givenFormat = context.getInitParameter("ServletContextLogger.FORMAT");
+            final String givenFormat = context.getInitParameter("webapp-slf4j-logger.format");
             if (givenFormat != null)
             {
                 enabledLevel = Level.valueOf(defaultLevel.toUpperCase());
@@ -304,8 +306,8 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     private final Format format = new Format(defaultFormat);
     
     /**
-     * Package access allows only {@link SimpleLoggerFactory} to instantiate
-     * SimpleLogger instances.
+     * Package access allows only to instantiate
+     * ServletContextLogger instances.
      */
     ServletContextLogger(String name)
     {

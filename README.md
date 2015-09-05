@@ -32,8 +32,52 @@ Features:
  * Serialization and desierialization
  * Custom formats
  * Mapped Diagnostic Contexts (MDC)
+ * Automatic IP tag (using MDC and servlet 3.0 annotations)
 
 # Configuration
+
+## Inclusion in a 3.0 webapp
+
+If your J2EE container is complient with the 3.0 servlet API, then you just have to include webapp-slf4j-logger.jar in your WEB-INF/lib directory.
+
+## Log level
+
+The logging level can be set with a context parameter.  Possible
+values are (case insensitive) `trace`, `debug`, `info`, `warn`,
+`error`, following the standard slf4j levels.
+
+    <context-param>
+      <param-name>webapp-slf4j-logger.level</param-name>
+      <param-value>debug</param-value>
+    </context-param>
+
+The default enabled level is INFO.
+
+## Format
+
+The format can be specified with a context parameter, as a sequence of placeholders and literal text.
+
+    <context-param>
+      <param-name>webapp-slf4j-logger.format</param-name>
+      <param-value>%logger [%level] [%ip] %message</param-value>
+    </context-param>
+
+Placeholders begin with '%' and must only contain alpha-numeric characters.
+
+Predefined placeholders:
+
+* %date - the timestamp, formatted as "YYYY-MM-DD HH:mm:ss,sss".
+* %level, %Level, %LEVEL - the level in lowercase, standard case or uppercase (and left-padded to five characters).
+* %logger - the name of the logger (for class names, the package is not shown).
+* %ip - the IP address of the current 
+* %message - the actual log message string
+
+Custom placeholders must correspond to existing MDC tags. For instance, to see IPs of each log line's request,
+you can use the provided com.republicate.slf4j.helpers.IPFilter, and set up a format with the %ip placeholder.
+
+The default format is:
+    %logger [%level] [%ip] %message\n
+(it doesn't include %date, as the date will usually be added by the J2EE container).
 
 ## Inclusion in a maven-based project
 
@@ -45,9 +89,7 @@ Declare a dependency on `webapp-slf4j-logger`:
       <version>1.0.0</version>
     </dependency>
 
-## Inclusion in a non-maven based project
-
-Just include webapp-slf4j-logger in WEB-INF/lib.
+## Inclusion in a non-3.0 webapp
 
 If your J2EE container is not complient with servlet API 3.0, you have to add to `web.xml`:
 
@@ -55,35 +97,18 @@ If your J2EE container is not complient with servlet API 3.0, you have to add to
       <listener-class>com.republicate.slf4j.impl.ServletContextLoggerSCL</listener-class>
     </listener>
 
-## Log level
+And if you want to enable the %ip format tag, you'll also have to add the following filter:
 
-The logging level can be set with a context parameter.  Possible
-values are (case insensitive) `trace`, `debug`, `info`, `warn`,
-`error`, following the standard slf4j levels.
+    <filter>
+      <filter-name>webapp-slf4j-logger-ip-tag-filter</filter-name>
+      <filter-class>com.republicate.slf4j.impl.IPTagFilter</filter-class>
+    </filter>
 
-    <context-param>
-      <param-name>ServletContextLogger.level</param-name>
-      <param-value>debug</param-value>
-    </context-param>
+with its mapping:
 
-## Format
-
-The format can be specified with a context parameter, as a sequence of placeholders and literal text.
-
-    <context-param>
-      <param-name>ServletContextLogger.format</param-name>
-      <param-value>%date [%ip] [%level] %logger %message</param-value>
-    </context-param>
-
-Placeholders begin with '%' and must only contain alpha-numeric characters.
-
-Predefined placeholders:
-
-* %date - the timestamp, formatted as "YYYY-MM-DD HH:mm:ss,sss".
-* %level, %Level, %LEVEL - the level in lowercase, standard case or uppercase (and left-padded to five characters).
-* %logger - the name of the logger (for class names, the package is not shown).
-* %message - the actual log message string
-
-Custom placeholders must correspond to existing MDC tags. For instance, to see IPs of each log line's request,
-you can use the provided com.republicate.slf4j.helpers.IPFilter, and set up a format with the %ip placeholder.
-
+    <filter-mapping>
+      <filter-name>webapp-slf4j-logger-ip-tag-filter</filter-name>
+      <url-pattern>/*</url-pattern>
+      <dispatcher>REQUEST</dispatcher>
+      <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
