@@ -69,15 +69,15 @@ Predefined placeholders:
 * %date - the timestamp, formatted as "YYYY-MM-DD HH:mm:ss,sss".
 * %level, %Level, %LEVEL - the level in lowercase, standard case or uppercase (and left-padded to five characters).
 * %logger - the name of the logger (for class names, the package is not shown).
-* %ip - the IP address of the current 
+* %ip - the IP address of the current request
 * %message - the actual log message string
 
 Custom placeholders must correspond to existing MDC tags. For instance, to see IPs of each log line's request,
 you can use the provided com.republicate.slf4j.helpers.IPFilter, and set up a format with the %ip placeholder.
 
 The default format is:
-    %logger [%level] [%ip] %message\n
-(it doesn't include %date, as the date will usually be added by the J2EE container).
+    %logger [%level] [%ip] %message
+(it doesn't include %date, as the date will usually be added by the J2EE container, nor does it add a terminal \n, as the container will take care of it).
 
 ## Inclusion in a maven-based project
 
@@ -112,3 +112,9 @@ with its mapping:
       <dispatcher>REQUEST</dispatcher>
       <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
+
+## FAQ
+
+### All other SLF4J jars begin with "slf4j". Why isn't this library called slf4j-webapp-logger?
+
+Some containers, Tomcat at least, will not search for servlet-3.0 annotations in a certain number of jars, among which all slf4j-* jars...
