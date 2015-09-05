@@ -59,6 +59,7 @@ public class MDCStore implements MDCAdapter
             map = new HashMap<String, String>();
             store.set(map);
         }
+        map.put(key, val);
     }
 
     /**
