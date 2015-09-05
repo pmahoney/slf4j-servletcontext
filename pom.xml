@@ -25,7 +25,7 @@ under the License.
     <version>7</version>
   </parent>
   <groupId>com.republicate</groupId>
-  <artifactId>webapp-slf4j-impl</artifactId>
+  <artifactId>webapp-slf4j-logger</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>SLF4J WebApp Logger</name>
