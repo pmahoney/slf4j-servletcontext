@@ -26,10 +26,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.ServletContext;
+
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MarkerIgnoringBase;
 import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.LocationAwareLogger;
+
+import com.republicate.slf4j.util.CachingDateFormatter;
 
 /**
  * ServletContextLogger implementation.
@@ -145,7 +148,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     }
 
     protected static Pattern splitter = Pattern.compile("(?:%[a-zA-Z0-9]+)|(?:[^%]+)", Pattern.DOTALL);
-    protected static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+    protected static CachingDateFormatter dateFormat = new CachingDateFormatter("yyyy-MM-dd HH:mm:ss,SSS");
     protected static MDCStore mdcStore = MDCStore.getSingleton();
 
     public static class FormatElem

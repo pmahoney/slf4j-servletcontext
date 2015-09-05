@@ -21,6 +21,7 @@ package com.republicate.slf4j.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.slf4j.spi.MDCAdapter;
 
 /**
