@@ -148,13 +148,13 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     protected static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
     protected static MDCStore mdcStore = MDCStore.getSingleton();
 
-    public class FormatElem
+    public static class FormatElem
     {
         public ElemType type;
         public String content = null;
     }
 
-    public class Format
+    public static class Format
     {
         Format(String str)
         {
@@ -206,7 +206,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
             elements = (FormatElem[])lst.toArray(new FormatElem[lst.size()]);
         }
 
-        String layout(Level level, String message)
+        String layout(String logger, Level level, String message)
         {
             StringBuilder builder = new StringBuilder(128);
             for (FormatElem element : elements)
@@ -235,7 +235,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                     }
                     case LOGGER:
                     {
-                        builder.append(simpleName);
+                        builder.append(logger);
                         break;
                     }
                     case MESSAGE:
@@ -270,6 +270,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     private static Level enabledLevel = Level.INFO;
 
     private static String defaultFormat = "%logger [%level] [%ip] %message";
+    private static Format format = new Format(defaultFormat);
 
     /**
      * Set the ServletContext used by all ServletContextLogger objects.  This
@@ -291,7 +292,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
             final String givenFormat = context.getInitParameter("webapp-slf4j-logger.format");
             if (givenFormat != null)
             {
-                enabledLevel = Level.valueOf(defaultLevel.toUpperCase());
+                format = new Format(givenFormat);
             }
         }
     }
@@ -303,7 +304,6 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     
     private final String name;    
     private final String simpleName;
-    private final Format format = new Format(defaultFormat);
     
     /**
      * Package access allows only to instantiate
@@ -335,7 +335,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         final ServletContext context = getServletContext();
         if (context != null)
         {
-            String formatted = format.layout(level, message);
+            String formatted = format.layout(simpleName, level, message);
             if (t == null)
             {
                 context.log(formatted);
