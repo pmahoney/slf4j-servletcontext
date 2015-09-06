@@ -6,9 +6,13 @@ import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
 import org.apache.commons.net.smtp.SimpleSMTPHeader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MailNotifier implements Runnable
 {
     private String host;
+    private int port;
     private String sender;
     private String recipient;
     private LinkedList<Notification> queue = new LinkedList<Notification>();
@@ -26,11 +30,23 @@ public class MailNotifier implements Runnable
         }
     }
 
-    public MailNotifier(String host, String sender, String recipient)
+    private MailNotifier(String host, String port, String sender, String recipient)
     {
         this.host = host;
+        this.port = Integer.valueOf(port);
         this.sender = sender;
         this.recipient = recipient;
+    }
+
+    public static MailNotifier singleton = null;
+
+    public MailNotifier getInstance(String host, String port, String sender, String recipient)
+    {
+        if (singleton == null)
+        {
+            singleton = new MailNotifier(host, port, sender, recipient);
+        }
+        return singleton;
     }
 
     public void start()
@@ -126,8 +142,8 @@ public class MailNotifier implements Runnable
                 }
             }
             catch(Exception f) {}
-            Logger.enableNotifications(false);
-            Logger.log(e);
+
+            LoggerFactory.getLogger("MailNotifier").log("could not send notification", e);
         }
     }
 }

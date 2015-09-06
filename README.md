@@ -79,6 +79,19 @@ The default format is:
     %logger [%level] [%ip] %message
 (it doesn't include %date, as the date will usually be added by the J2EE container, nor does it add a terminal \n, as the container will take care of it).
 
+## Email notifications
+
+The logger can be configured to send an email if severity is beyond a certain level (typically, warning or error). The configuration parameter is of the form:
+    *level*:*protocol*:*mail_server*:*port*:*from_address*:*to_address*
+The only protocol supported for now is smtp.
+
+Example:
+
+    <context-param>
+      <param-name>webapp-slf4j-logger.notification</param-name>
+      <param-value>warn:smtp:mail.server:25:from@address:to@address</param-value>
+    </context-param>
+
 ## Inclusion in a maven-based project
 
 Declare a dependency on `webapp-slf4j-logger`:

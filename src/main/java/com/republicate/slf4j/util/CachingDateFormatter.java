@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.republicate.slf4j.impl;
+package com.republicate.slf4j.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
