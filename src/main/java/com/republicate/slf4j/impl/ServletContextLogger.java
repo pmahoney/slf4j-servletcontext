@@ -19,6 +19,8 @@
 
 package com.republicate.slf4j.impl;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.LocationAwareLogger;
 
 import com.republicate.slf4j.util.CachingDateFormatter;
+import com.republicate.slf4j.util.MailNotifier;
 
 /**
  * ServletContextLogger implementation.
@@ -275,6 +278,11 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     private static String defaultFormat = "%logger [%level] [%ip] %message";
     private static Format format = new Format(defaultFormat);
 
+    private static Level notificationLevel = Level.ERROR;
+    private static MailNotifier mailNotifier = null;
+
+    private static Throwable configurationError = null;
+
     /**
      * Set the ServletContext used by all ServletContextLogger objects.  This
      * should be done in a ServletContextListener, e.g. ServletContextLoggerSCL.
@@ -286,16 +294,47 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         context = ctx;
         if (context != null)
         {
-            final String defaultLevel = context.getInitParameter("webapp-slf4j-logger.level");
-            if (defaultLevel != null)
+            try
             {
-                enabledLevel = Level.valueOf(defaultLevel.toUpperCase());
+                final String defaultLevel = context.getInitParameter("webapp-slf4j-logger.level");
+                if (defaultLevel != null)
+                    {
+                        enabledLevel = Level.valueOf(defaultLevel.toUpperCase());
+                    }
+                
+                final String givenFormat = context.getInitParameter("webapp-slf4j-logger.format");
+                if (givenFormat != null)
+                    {
+                        format = new Format(givenFormat);
+                    }
+                
+                final String notification = context.getInitParameter("webapp-slf4j-logger.notification");
+                if (notification != null)
+                {
+                    String tokens[] = notification.split(":");
+                    if (tokens.length != 6)
+                    {
+                        throw new IllegalArgumentException("notifications: expecting 6 tokens: 'level:protocol:mail_server:port:from_address:to_address'");
+                    }
+                    notificationLevel = Level.valueOf(tokens[0]);
+                    if (tokens[1] != "smtp")
+                    {
+                        throw new UnsupportedOperationException("notifications: protocol non supported: " + tokens[1]);
+                    }
+                    mailNotifier = MailNotifier.getInstance(tokens[2], tokens[3], tokens[4], tokens[5]);
+                    mailNotifier.start();
+                }
             }
-
-            final String givenFormat = context.getInitParameter("webapp-slf4j-logger.format");
-            if (givenFormat != null)
+            catch (Throwable t)
             {
-                format = new Format(givenFormat);
+                configurationError = t;
+            }
+        }
+        else
+        {
+            if (mailNotifier != null && mailNotifier.isRunning())
+            {
+                mailNotifier.stop();
             }
         }
     }
@@ -332,12 +371,35 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         return (context != null && level.getValue() >= enabledLevel.getValue());
     }
 
+    /**
+     * Does the given log level trigger a notification?
+     *
+     * @param level
+     */
+    protected boolean triggersNotification(Level level)
+    {
+        // log level are numerically ordered so can use simple numeric
+        // comparison
+        return (context != null && level.getValue() >= notificationLevel.getValue());
+    }
+
+
     private void log(Level level, String message, Throwable t)
     {
         if (!isLevelEnabled(level)) return;
         final ServletContext context = getServletContext();
         if (context != null)
         {
+            // log any configuration error at the first received log request
+            if (configurationError != null)
+            {
+                synchronized(this)
+                {
+                    Throwable e = configurationError;
+                    configurationError = null;
+                    log(Level.ERROR, "webapp-slf4j-logger configuration error", e);
+                }
+            }
             String formatted = format.layout(simpleName, level, message);
             if (t == null)
             {
@@ -346,6 +408,21 @@ public final class ServletContextLogger extends MarkerIgnoringBase
             else
             {
                 context.log(formatted, t);
+            }
+            if (triggersNotification(level))
+            {
+                String subject = message;
+                int cr = subject.indexOf('\n');
+                if (cr != -1) subject = subject.substring(0, cr);
+                StringBuilder body = new StringBuilder();
+                body.append(message);
+                if (t != null)
+                {
+                    StringWriter stack = new StringWriter();
+                    t.printStackTrace(new PrintWriter(stack));
+                    body.append(stack.toString());
+                }
+                mailNotifier.sendNotification(subject, body.toString());
             }
         }
     }

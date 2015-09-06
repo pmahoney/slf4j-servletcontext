@@ -40,8 +40,9 @@ public class MailNotifier implements Runnable
 
     public static MailNotifier singleton = null;
 
-    public MailNotifier getInstance(String host, String port, String sender, String recipient)
+    public static MailNotifier getInstance(String host, String port, String sender, String recipient)
     {
+        // TODO - could return a different instance for each set of parameters
         if (singleton == null)
         {
             singleton = new MailNotifier(host, port, sender, recipient);
@@ -52,6 +53,11 @@ public class MailNotifier implements Runnable
     public void start()
     {
         new Thread(this, "email notifications").start();
+    }
+
+    public boolean isRunning()
+    {
+        return running;
     }
 
     public void stop()
@@ -143,7 +149,7 @@ public class MailNotifier implements Runnable
             }
             catch(Exception f) {}
 
-            LoggerFactory.getLogger("MailNotifier").log("could not send notification", e);
+            LoggerFactory.getLogger("MailNotifier").error("could not send notification", e);
         }
     }
 }
