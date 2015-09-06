@@ -298,15 +298,15 @@ public final class ServletContextLogger extends MarkerIgnoringBase
             {
                 final String defaultLevel = context.getInitParameter("webapp-slf4j-logger.level");
                 if (defaultLevel != null)
-                    {
-                        enabledLevel = Level.valueOf(defaultLevel.toUpperCase());
-                    }
+                {
+                    enabledLevel = Level.valueOf(defaultLevel.toUpperCase());
+                }
                 
                 final String givenFormat = context.getInitParameter("webapp-slf4j-logger.format");
                 if (givenFormat != null)
-                    {
-                        format = new Format(givenFormat);
-                    }
+                 {
+                     format = new Format(givenFormat);
+                 }
                 
                 final String notification = context.getInitParameter("webapp-slf4j-logger.notification");
                 if (notification != null)
@@ -316,8 +316,8 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                     {
                         throw new IllegalArgumentException("notifications: expecting 6 tokens: 'level:protocol:mail_server:port:from_address:to_address'");
                     }
-                    notificationLevel = Level.valueOf(tokens[0]);
-                    if (tokens[1] != "smtp")
+                    notificationLevel = Level.valueOf(tokens[0].toUpperCase());
+                    if (!"smtp".equals(tokens[1]))
                     {
                         throw new UnsupportedOperationException("notifications: protocol non supported: " + tokens[1]);
                     }
@@ -411,11 +411,11 @@ public final class ServletContextLogger extends MarkerIgnoringBase
             }
             if (triggersNotification(level))
             {
-                String subject = message;
+                String subject = formatted;
                 int cr = subject.indexOf('\n');
                 if (cr != -1) subject = subject.substring(0, cr);
                 StringBuilder body = new StringBuilder();
-                body.append(message);
+                body.append(formatted);
                 if (t != null)
                 {
                     StringWriter stack = new StringWriter();
