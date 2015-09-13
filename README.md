@@ -29,10 +29,10 @@ All log messages are logged using
 
 Features:
 
- * Serialization and desierialization
- * Custom formats
+ * zero-config for default functional behaviour
+ * Custom format (with a functional %ip tag to log HTTP request IP, included in the default format)
  * Mapped Diagnostic Contexts (MDC)
- * Automatic IP tag (using MDC and servlet 3.0 annotations)
+ * Supports serialization and deserialization
 
 # Configuration
 

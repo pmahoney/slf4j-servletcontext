@@ -40,7 +40,7 @@ under the License.
   <scm>
     <connection>scm:git:git@github.com:arkanovicz/webapp-slf4j-logger.git</connection>
     <developerConnection>scm:git:git@github.com:arkanovicz/webapp-slf4j-logger.git</developerConnection>
-    <url>https://github.com/arkanovicz/webapp-slf4j-logger.git</url>
+    <url>http://arkanovicz.github.io/webapp-slf4j-logger/</url>
   </scm>
   <developers>
     <developer>
