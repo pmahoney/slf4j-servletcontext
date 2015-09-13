@@ -99,7 +99,7 @@ Declare a dependency on `webapp-slf4j-logger`:
     <dependency>
       <groupId>com.republicate</groupId>
       <artifactId>webapp-slf4j-logger</artifactId>
-      <version>1.0.0</version>
+      <version>1.0</version>
     </dependency>
 
 ## Inclusion in a non-3.0 webapp
