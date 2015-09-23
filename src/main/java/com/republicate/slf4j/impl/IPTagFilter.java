@@ -35,7 +35,6 @@ import com.republicate.slf4j.impl.MDCStore;
 /**
  * An automatic filter which fills the IP MDC tag on the current thread.
  * 
- * @author Patrick Mahoney
  * @author Claude Brisson
  */
 
