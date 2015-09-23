@@ -344,7 +344,6 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         return context;
     }
     
-    private final String name;    
     private final String simpleName;
     
     /**
