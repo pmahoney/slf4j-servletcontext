@@ -344,8 +344,6 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         return context;
     }
     
-    private final String simpleName;
-    
     /**
      * Package access allows only to instantiate
      * ServletContextLogger instances.
@@ -353,9 +351,6 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     ServletContextLogger(String name)
     {
         this.name = name;
-        final int dot;
-        if ((dot = name.lastIndexOf(".")) != -1) simpleName = name.substring(dot+1);
-        else simpleName = name;
     }
     
     /**
@@ -399,7 +394,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                     log(Level.ERROR, "webapp-slf4j-logger configuration error", e);
                 }
             }
-            String formatted = format.layout(simpleName, level, message);
+            String formatted = format.layout(name, level, message);
             if (t == null)
             {
                 context.log(formatted);
