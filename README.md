@@ -34,6 +34,16 @@ Features:
  * Mapped Diagnostic Contexts (MDC)
  * Supports serialization and deserialization
 
+# Building
+
+To build the jar:
+
+    mvn jar:jar
+
+To build the javadocs:
+
+    mvn javadoc:javadoc
+
 # Configuration
 
 ## Inclusion in a 3.0 webapp
@@ -68,7 +78,7 @@ Predefined placeholders:
 
 * %date - the timestamp, formatted as "YYYY-MM-DD HH:mm:ss,sss".
 * %level, %Level, %LEVEL - the level in lowercase, standard case or uppercase (and left-padded to five characters).
-* %logger - the name of the logger (for class names, the package is not shown).
+* %logger - the name of the logger.
 * %ip - the IP address of the current request
 * %message - the actual log message string
 
