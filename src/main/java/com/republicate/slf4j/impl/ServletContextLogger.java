@@ -374,7 +374,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     {
         // log level are numerically ordered so can use simple numeric
         // comparison
-        return (context != null && level.getValue() >= notificationLevel.getValue());
+        return (context != null && mailNotifier != null && level.getValue() >= notificationLevel.getValue());
     }
 
 
