@@ -87,12 +87,12 @@ under the License.
       <version>3.3</version>
     </dependency>
   </dependencies>
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
+  <distributionManagement>
+	  <snapshotRepository>
+		  <id>ossrh</id>
+		  <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+	  </snapshotRepository>
+  </distributionManagement>
   <build>
     <plugins>
       <plugin>
@@ -100,8 +100,12 @@ under the License.
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.3</version>
         <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
+          <debug>false</debug>
+          <optimize>true</optimize>
+          <showDeprecation>true</showDeprecation>
+          <showWarning>true</showWarning>
+          <source>1.7</source>
+          <target>1.7</target>
         </configuration>
       </plugin>
       <plugin>
