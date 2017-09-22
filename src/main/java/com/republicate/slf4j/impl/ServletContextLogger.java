@@ -24,7 +24,10 @@ import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.ServletContext;
@@ -47,13 +50,17 @@ import com.republicate.slf4j.util.MailNotifier;
 public final class ServletContextLogger extends MarkerIgnoringBase
 {
     
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 3L;
     
     public static final int LOG_LEVEL_TRACE = LocationAwareLogger.TRACE_INT;
     public static final int LOG_LEVEL_DEBUG = LocationAwareLogger.DEBUG_INT;
     public static final int LOG_LEVEL_INFO = LocationAwareLogger.INFO_INT;
     public static final int LOG_LEVEL_WARN = LocationAwareLogger.WARN_INT;
     public static final int LOG_LEVEL_ERROR = LocationAwareLogger.ERROR_INT;
+
+    protected static final String INIT_PARAMETER_PREFIX = "webapp-slf4j-logger";
+    protected static Pattern logLevelInitParam = Pattern.compile("(\\S+)\\.level", Pattern.CASE_INSENSITIVE);
+    protected static Map<String, Level> explicitLevels = new HashMap<String, Level>();
     
     public enum Level
     {
@@ -274,6 +281,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     private static ServletContext context = null;
     
     private static Level enabledLevel = Level.INFO;
+    private Level loggerLevel = enabledLevel;
 
     private static String defaultFormat = "%logger [%level] [%ip] %message";
     private static Format format = new Format(defaultFormat);
@@ -296,33 +304,43 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         {
             try
             {
-                final String defaultLevel = context.getInitParameter("webapp-slf4j-logger.level");
-                if (defaultLevel != null)
+                for (Enumeration<String> initParameters = context.getInitParameterNames(); initParameters.hasMoreElements();)
                 {
-                    enabledLevel = Level.valueOf(defaultLevel.toUpperCase());
-                }
-                
-                final String givenFormat = context.getInitParameter("webapp-slf4j-logger.format");
-                if (givenFormat != null)
-                 {
-                     format = new Format(givenFormat);
-                 }
-                
-                final String notification = context.getInitParameter("webapp-slf4j-logger.notification");
-                if (notification != null)
-                {
-                    String tokens[] = notification.split(":");
-                    if (tokens.length != 6)
+                    String initParameter = initParameters.nextElement();
+                    if (!initParameter.startsWith(INIT_PARAMETER_PREFIX + '.')) continue;
+                    String value = context.getInitParameter(initParameter);
+                    initParameter = initParameter.substring(INIT_PARAMETER_PREFIX.length() + 1);
+                    switch (initParameter)
                     {
-                        throw new IllegalArgumentException("notifications: expecting 6 tokens: 'level:protocol:mail_server:port:from_address:to_address'");
+                        case "level": enabledLevel = Level.valueOf(value.toUpperCase()); break;
+                        case "format": format = new Format(value); break;
+                        case "notification":
+                        {
+                            String tokens[] = value.split(":");
+                            if (tokens.length != 6)
+                            {
+                                throw new IllegalArgumentException("notifications: expecting 6 tokens: 'level:protocol:mail_server:port:from_address:to_address'");
+                            }
+                            notificationLevel = Level.valueOf(tokens[0].toUpperCase());
+                            if (!"smtp".equals(tokens[1]))
+                            {
+                                throw new UnsupportedOperationException("notifications: protocol non supported: " + tokens[1]);
+                            }
+                            mailNotifier = MailNotifier.getInstance(tokens[2], tokens[3], tokens[4], tokens[5]);
+                            mailNotifier.start();
+                            break;
+                        }
+                        default:
+                        {
+                            Matcher m = logLevelInitParam.matcher(initParameter);
+                            if (m.matches())
+                            {
+                                String loggerName = m.group(1);
+                                explicitLevels.put(loggerName, Level.valueOf(value.toUpperCase()));
+                            }
+                            else throw new IllegalArgumentException("invalid init parameter name: " + INIT_PARAMETER_PREFIX + "." + initParameter);
+                        }
                     }
-                    notificationLevel = Level.valueOf(tokens[0].toUpperCase());
-                    if (!"smtp".equals(tokens[1]))
-                    {
-                        throw new UnsupportedOperationException("notifications: protocol non supported: " + tokens[1]);
-                    }
-                    mailNotifier = MailNotifier.getInstance(tokens[2], tokens[3], tokens[4], tokens[5]);
-                    mailNotifier.start();
                 }
             }
             catch (Throwable t)
@@ -351,6 +369,11 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     ServletContextLogger(String name)
     {
         this.name = name;
+        Level level = explicitLevels.get(name);
+        if (level != null)
+        {
+            loggerLevel = level;
+        }
     }
     
     /**
@@ -362,7 +385,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     {
         // log level are numerically ordered so can use simple numeric
         // comparison
-        return (context != null && level.getValue() >= enabledLevel.getValue());
+        return (context != null && level.getValue() >= loggerLevel.getValue());
     }
 
     /**
