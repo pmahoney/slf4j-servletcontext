@@ -47,7 +47,7 @@ public class MDCStore implements MDCAdapter
     /**
      * Put a context value (the <code>val</code> parameter) as identified with
      * the <code>key</code> parameter into the current thread's context map. 
-     * The <code>key</code> parameter cannot be null. The code>val</code> can be null.
+     * The <code>key</code> parameter cannot be null. The <code>val</code> can be null.
      * 
      * <p>If the current thread does not have a context map it is created as a side
      * effect of this call.
