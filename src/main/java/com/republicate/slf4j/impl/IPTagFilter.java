@@ -44,7 +44,8 @@ import com.republicate.slf4j.impl.MDCStore;
  urlPatterns = { "/*" },
  dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.FORWARD},
  displayName = "IP Tag Filter",
- description = "Sets the value of the IP Tag for the webapp-slf4j logger."
+ description = "Sets the value of the IP Tag for the webapp-slf4j logger.",
+ asyncSupported = true
 )
 public class IPTagFilter implements Filter
 {
@@ -76,6 +77,8 @@ public class IPTagFilter implements Filter
                 }
             }
             mdcStore.put("ip", ip);
+            String user = request.getRemoteUser();
+            mdcStore.put("user", user);
         }
         chain.doFilter(req, res);
     }
