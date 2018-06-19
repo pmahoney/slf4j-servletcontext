@@ -29,17 +29,17 @@ All log messages are logged using
 
 Features:
 
- * zero-config for default functional behaviour
- * Custom format (with a %ip tag to log the HTTP request IP and a %user to log the logged HTTP user included in the default format)
- * Mapped Diagnostic Contexts (MDC)
- * Supports serialization and deserialization
- * Per-class log level
+ * zero-config for default functional behaviour (with J2EE annotations enabled)
+ * Custom formats (with %date, %level, %logger, %ip, %user, %message)
+ * Custom format placeholders (using slf4j MDC, aka Mapped Diagnostic Contexts)
+ * Supports session serialization & deserialization
+ * Per-class log levels
 
 # Building
 
 To build the jar:
 
-    mvn jar:jar
+    mvn package
 
 To build the javadocs:
 
@@ -47,9 +47,9 @@ To build the javadocs:
 
 # Configuration
 
-## Inclusion in a 3.0 webapp
+## Inclusion in a J2EE 3.0+ webapp
 
-If your J2EE container is complient with the 3.0 servlet API, then you just have to include webapp-slf4j-logger.jar in your WEB-INF/lib directory.
+If your J2EE container is complient with the 3.0 servlet API, then you just have to include webapp-slf4j-logger.jar in your WEB-INF/lib directory. But make sure that `metadata-complete` attribute of the root `<web-app>` tag is absent or set to `false` in your `web.xml` file.
 
 ## Log levels
 
@@ -64,15 +64,14 @@ values are (case insensitive) `trace`, `debug`, `info`, `warn`,
 
 The default enabled level is INFO.
 
-Per-class log levels are set as well using context parameters, using the logger name. For instance, setting the "foo.bar" logger to info is done with:
+Per-class log levels are set as well using context parameters, using webapp-slf4j-logger.<logger name>.level - for instance, setting the "foo.bar" logger to info is done as follow:
 
     <context-param>
       <param-name>webapp-slf4j-logger.foo.bar.level</param-name>
       <param-value>info</param-value>
     </context-param>
 
-
-## Format
+## Log Format
 
 The format can be specified with a context parameter, as a sequence of placeholders and literal text.
 
@@ -92,8 +91,7 @@ Predefined placeholders:
 * %user - the name of the currently logged HTTP user
 * %message - the actual log message string
 
-Custom placeholders must correspond to existing MDC tags. For instance, to see IPs of each log line's request,
-you can use the provided com.republicate.slf4j.helpers.IPFilter, and set up a format with the %ip placeholder.
+Custom placeholders must correspond to existing MDC tags. Check the [IPTagFilter.java](https://github.com/arkanovicz/webapp-slf4j-logger/blob/master/src/main/java/com/republicate/slf4j/impl/IPTagFilter.java) class to see an example.
 
 The default format is:
     %logger [%level] [%ip] %message
