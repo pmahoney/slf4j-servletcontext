@@ -30,9 +30,10 @@ All log messages are logged using
 Features:
 
  * zero-config for default functional behaviour
- * Custom format (with a functional %ip tag to log HTTP request IP, included in the default format)
+ * Custom format (with a %ip tag to log the HTTP request IP and a %user to log the logged HTTP user included in the default format)
  * Mapped Diagnostic Contexts (MDC)
  * Supports serialization and deserialization
+ * Per-class log level
 
 # Building
 
@@ -50,9 +51,9 @@ To build the javadocs:
 
 If your J2EE container is complient with the 3.0 servlet API, then you just have to include webapp-slf4j-logger.jar in your WEB-INF/lib directory.
 
-## Log level
+## Log levels
 
-The logging level can be set with a context parameter.  Possible
+The default logging level can be set with a context parameter.  Possible
 values are (case insensitive) `trace`, `debug`, `info`, `warn`,
 `error`, following the standard slf4j levels.
 
@@ -62,6 +63,14 @@ values are (case insensitive) `trace`, `debug`, `info`, `warn`,
     </context-param>
 
 The default enabled level is INFO.
+
+Per-class log levels are set as well using context parameters, using the logger name. For instance, setting the "foo.bar" logger to info is done with:
+
+    <context-param>
+      <param-name>webapp-slf4j-logger.foo.bar.level</param-name>
+      <param-value>info</param-value>
+    </context-param>
+
 
 ## Format
 
@@ -79,7 +88,8 @@ Predefined placeholders:
 * %date - the timestamp, formatted as "YYYY-MM-DD HH:mm:ss,sss".
 * %level, %Level, %LEVEL - the level in lowercase, standard case or uppercase (and left-padded to five characters).
 * %logger - the name of the logger.
-* %ip - the IP address of the current request
+* %ip - the IP address of the current HTTP request
+* %user - the name of the currently logged HTTP user
 * %message - the actual log message string
 
 Custom placeholders must correspond to existing MDC tags. For instance, to see IPs of each log line's request,
@@ -109,7 +119,7 @@ Declare a dependency on `webapp-slf4j-logger`:
     <dependency>
       <groupId>com.republicate</groupId>
       <artifactId>webapp-slf4j-logger</artifactId>
-      <version>1.0</version>
+      <version>1.3</version>
     </dependency>
 
 ## Inclusion in a non-3.0 webapp
