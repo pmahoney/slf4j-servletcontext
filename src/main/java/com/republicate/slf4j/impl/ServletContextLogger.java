@@ -370,6 +370,16 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     {
         this.name = name;
         Level level = explicitLevels.get(name);
+        while (level == null)
+        {
+            int dot = name.lastIndexOf('.');
+            if (dot == -1) break;
+            else
+            {
+                name = name.substring(0, dot);
+                level = explicitLevels.get(name);
+            }
+        }
         if (level != null)
         {
             loggerLevel = level;
