@@ -154,10 +154,13 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         LOGGER,
         MESSAGE,
         CONTEXT, // MDC
-        LITERAL
+        LITERAL,
+        DECORATOR,
+        SPACE
     }
 
-    protected static Pattern splitter = Pattern.compile("(?:%[a-zA-Z0-9]+)|(?:[^%]+)", Pattern.DOTALL);
+    protected static Pattern splitter = Pattern.compile("%[a-zA-Z0-9]+|[^% ]+| +", Pattern.DOTALL);
+    protected static Pattern decorator = Pattern.compile("[(\\[{)\\]}.@:,;/<>#-]+");
     protected static CachingDateFormatter dateFormat = new CachingDateFormatter("yyyy-MM-dd HH:mm:ss,SSS");
     protected static MDCStore mdcStore = MDCStore.getSingleton();
 
@@ -210,9 +213,15 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                         element.content = elem.substring(1);
                     }
                 }
+                else if (elem.trim().length() == 0)
+                {
+                    element.type = ElemType.SPACE;
+                    element.content = elem;
+                }
                 else
                 {
-                    element.type = ElemType.LITERAL;
+                    Matcher m = decorator.matcher(elem);
+                    element.type = m.matches() ? ElemType.DECORATOR : ElemType.LITERAL;
                     element.content = elem;
                 }
             }
@@ -222,8 +231,13 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         String layout(String logger, Level level, String message)
         {
             StringBuilder builder = new StringBuilder(128);
+            int pos = 0;
+            boolean mayDrop = true;
+            boolean shouldDrop = false;
             for (FormatElem element : elements)
             {
+                int prevPos = builder.length();
+                boolean mayDropElem = false;
                 switch (element.type)
                 {
                     case DATE:
@@ -263,6 +277,11 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                         {
                             builder.append(fragment);
                         }
+                        else
+                        {
+                            mayDropElem = true;
+                            shouldDrop = true;
+                        }
                         break;
                     }
                     case LITERAL:
@@ -270,7 +289,35 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                         builder.append(element.content);
                         break;
                     }
+                    case SPACE:
+                    {
+                        if (mayDrop && shouldDrop)
+                        {
+                            builder.delete(pos, Integer.MAX_VALUE);
+                        }
+                        builder.append(element.content);
+                        pos = builder.length();
+                        mayDrop = mayDropElem = true;
+                        shouldDrop = false;
+                        break;
+                    }
+                    case DECORATOR:
+                    {
+                        mayDropElem = true;
+                        builder.append(element.content);
+                        break;
+                    }
                 }
+
+                mayDrop = (mayDrop && mayDropElem);
+                if (!mayDrop)
+                {
+                    pos = builder.length();
+                }
+            }
+            if (mayDrop && shouldDrop)
+            {
+                builder.delete(pos, Integer.MAX_VALUE);
             }
             return builder.toString();
         }
