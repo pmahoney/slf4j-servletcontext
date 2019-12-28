@@ -26,7 +26,7 @@ under the License.
     </parent>
     <groupId>com.republicate</groupId>
     <artifactId>webapp-slf4j-logger</artifactId>
-    <version>1.5</version>
+    <version>1.5.1</version>
     <packaging>jar</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>SLF4J backend to log to a WebApp's ServletContext</description>
@@ -60,8 +60,8 @@ under the License.
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>4.12</junit.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <servlet.version>3.0.1</servlet.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <servlet.version>3.1.0</servlet.version>
     </properties>
     <dependencies>
         <dependency>
