@@ -119,12 +119,18 @@ Declare a dependency on `webapp-slf4j-logger`:
       <version>1.3</version>
     </dependency>
 
-## Inclusion in a non-3.0 webapp
+## Inclusion in a 3.0+ webapp
+
+The logger uses an annotated ServletContextListener which should be picked up by the servlet container at initialization, provided that you did not set the `metadata-complete=true` attribute in the root `<webapp>` tag, so all you have to do is have the `webapp-slf4j-logger` present in `WEB-INF/lib`.
+
+Note that if the order in which servlet context listeners are initialized is important to you (like if you want to use the logger from within another servlet context listener), then you *should* explicitely declare all listeners, including the `com.republicate.slf4j.impl.ServletContextLoggerListener`, in your webapp descriptor as detailed below.
+
+## Inclusion in a non-3.0 webapp, or in a 3.0+ webapp with `metadata-complete=true`
 
 If your J2EE container is not complient with servlet API 3.0, you have to add to `web.xml`:
 
     <listener>
-      <listener-class>com.republicate.slf4j.impl.ServletContextLoggerSCL</listener-class>
+      <listener-class>com.republicate.slf4j.impl.ServletContextLoggerListener</listener-class>
     </listener>
 
 And if you want to enable the %ip format tag, you'll also have to add the following filter:
