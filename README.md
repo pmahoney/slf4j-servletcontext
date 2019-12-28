@@ -20,18 +20,17 @@ under the License.
 webapp-slf4j-logger
 ===================
 
-This is a simple logger with minimal configuration.  It is an
-[SLF4J](http://www.slf4j.org/) backend that forwards logs to a
-`ServletContext` object.
+webapp-slf4j-logger is an [SLF4J](http://www.slf4j.org/) backend that forwards logs to a `ServletContext` object.
 
 All log messages are logged using
-[ServletContext#log](http://docs.oracle.com/javaee/6/api/javax/servlet/ServletContext.html#log%28java.lang.String,%20java.lang.Throwable%29).
+[ServletContext#log](http://docs.oracle.com/javaee/6/api/javax/servlet/ServletContext.html#log%28java.lang.String,%20java.lang.Throwable%29), allowing a J2EE webapp to send its logs towards the J2EE container logs.
 
 Features:
 
  * zero-config for default functional behaviour (with J2EE annotations enabled)
  * Custom formats (with %date, %level, %logger, %ip, %user, %message)
- * Custom format placeholders (using slf4j MDC, aka Mapped Diagnostic Contexts)
+ * Custom format placeholders (using slf4j MDC, aka Mapped Diagnostic Contexts), which can be used to display contextal information like source filename, line and column, etc.
+ * Email notifications
  * Supports session serialization & deserialization
  * Per-class log levels
 
