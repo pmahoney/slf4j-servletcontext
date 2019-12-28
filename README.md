@@ -29,7 +29,7 @@ Features:
 
  * zero-config for default functional behaviour (with J2EE annotations enabled)
  * Custom formats (with %date, %level, %logger, %ip, %user, %message)
- * Custom format placeholders (using slf4j MDC, aka Mapped Diagnostic Contexts), which can be used to display contextal information like source filename, line and column, etc.
+ * Custom format placeholders (using slf4j MDC, aka Mapped Diagnostic Contexts), which can be used to display contextual information like source filename, line and column, etc.
  * Email notifications
  * Supports session serialization & deserialization
  * Per-class log levels
