@@ -342,7 +342,7 @@ public final class ServletContextLogger extends MarkerIgnoringBase
      * Set the ServletContext used by all ServletContextLogger objects.  This
      * should be done in a ServletContextListener, e.g. ServletContextLoggerSCL.
      * 
-     * @param ctx
+     * @param ctx servlet context
      */
     public static void setServletContext(ServletContext ctx)
     {
@@ -436,7 +436,8 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     /**
      * Is the given log level currently enabled?
      *
-     * @param level is this level enabled?
+     * @param level target level
+     * @return whether the level is enabled
      */
     protected boolean isLevelEnabled(Level level)
     {
@@ -448,7 +449,8 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     /**
      * Does the given log level trigger a notification?
      *
-     * @param level
+     * @param level target level
+     * @return whether the level does trigger a notification
      */
     protected boolean triggersNotification(Level level)
     {
