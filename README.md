@@ -99,7 +99,9 @@ The default format is:
 ## Email notifications
 
 The logger can be configured to send an email if severity is beyond a certain level (typically, warning or error). The configuration parameter is of the form:
+
     *level*:*protocol*:*mail_server*:*port*:*from_address*:*to_address*
+
 The only protocol supported for now is smtp.
 
 Example:
@@ -108,6 +110,8 @@ Example:
       <param-name>webapp-slf4j-logger.notification</param-name>
       <param-value>warn:smtp:mail.server:25:from@address:to@address</param-value>
     </context-param>
+
+You can also set this parameter to `false` to disable the notifications. Compared to just removing the parameter, it's useful if you are generating your webapp descriptor from, let say, filtered maven resources.
 
 ## Inclusion in a maven-based project
 
