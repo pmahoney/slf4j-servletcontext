@@ -363,6 +363,10 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                         case "format": format = new Format(value); break;
                         case "notification":
                         {
+                            if ("false".equals(value))
+                            {
+                                continue;
+                            }
                             String tokens[] = value.split(":");
                             if (tokens.length != 6)
                             {
