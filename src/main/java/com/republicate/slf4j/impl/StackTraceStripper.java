@@ -1,6 +1,7 @@
 package com.republicate.slf4j.impl;
 
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
  * </ul>
  */
 
-public class StackTraceStripper
+public class StackTraceStripper implements Serializable
 {
     private NavigableSet<String> unwantedPackages = new TreeSet<>();
 
