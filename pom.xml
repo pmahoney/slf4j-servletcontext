@@ -26,7 +26,7 @@ under the License.
     </parent>
     <groupId>com.republicate</groupId>
     <artifactId>webapp-slf4j-logger</artifactId>
-    <version>1.5.2</version>
+    <version>1.6</version>
     <packaging>jar</packaging>
     <name>webapp-slf4j-logger</name>
     <description>SLF4J backend to log to a WebApp's ServletContext</description>
@@ -101,9 +101,8 @@ under the License.
                 <version>3.3</version>
                 <configuration>
                     <showDeprecation>true</showDeprecation>
-                    <showWarning>true</showWarning>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>

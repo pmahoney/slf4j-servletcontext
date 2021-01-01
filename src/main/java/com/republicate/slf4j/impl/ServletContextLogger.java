@@ -19,15 +19,12 @@
 
 package com.republicate.slf4j.impl;
 
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.ServletContext;
@@ -59,7 +56,8 @@ public final class ServletContextLogger extends MarkerIgnoringBase
     public static final int LOG_LEVEL_ERROR = LocationAwareLogger.ERROR_INT;
 
     protected static final String INIT_PARAMETER_PREFIX = "webapp-slf4j-logger";
-    protected static Pattern logLevelInitParam = Pattern.compile("(\\S+)\\.level", Pattern.CASE_INSENSITIVE);
+    protected static Pattern oldLogLevelInitParam = Pattern.compile("(\\S+)\\.level", Pattern.CASE_INSENSITIVE);
+    protected static Pattern logLevelInitParam = Pattern.compile("level\\.(\\S+)", Pattern.CASE_INSENSITIVE);
     protected static Map<String, Level> explicitLevels = new HashMap<String, Level>();
     
     public enum Level
@@ -338,9 +336,89 @@ public final class ServletContextLogger extends MarkerIgnoringBase
 
     private static Throwable configurationError = null;
 
+    private static StackTraceStripper stackTraceStripper = new StackTraceStripper();
+
+    private static void configure(String initParameter, String value)
+    {
+        switch (initParameter)
+        {
+            case "level": enabledLevel = Level.valueOf(value.toUpperCase()); break;
+            case "format": format = new Format(value); break;
+            case "notification":
+            {
+                if ("false".equals(value))
+                {
+                    return;
+                }
+                String tokens[] = value.split(":");
+                if (tokens.length != 6)
+                {
+                    throw new IllegalArgumentException("notifications: expecting 6 tokens: 'level:protocol:mail_server:port:from_address:to_address'");
+                }
+                notificationLevel = Level.valueOf(tokens[0].toUpperCase());
+                if (!"smtp".equals(tokens[1]))
+                {
+                    throw new UnsupportedOperationException("notifications: protocol non supported: " + tokens[1]);
+                }
+                if (mailNotifier != null)
+                {
+                    throw new IllegalArgumentException("notifications: mailer has already been configured");
+                }
+                mailNotifier = MailNotifier.getInstance(tokens[2], tokens[3], tokens[4], tokens[5]);
+                mailNotifier.start();
+                break;
+            }
+            case "stripper":
+            {
+                if ("none".equals(value) || "false".equals(value) || value.isEmpty())
+                {
+                    stackTraceStripper = null;
+                }
+                else if ("default".equals(value))
+                {
+                    // nothing to do
+                }
+                else
+                {
+                    stackTraceStripper = new StackTraceStripper(value);
+                }
+                break;
+            }
+            default:
+            {
+                Matcher m = logLevelInitParam.matcher(initParameter);
+                if (m.matches())
+                {
+                    String loggerName = m.group(1);
+                    explicitLevels.put(loggerName, Level.valueOf(value.toUpperCase()));
+                }
+                else
+                {
+                    m = oldLogLevelInitParam.matcher(initParameter);
+                    if (m.matches())
+                    {
+                        String loggerName = m.group(1);
+                        explicitLevels.put(loggerName, Level.valueOf(value.toUpperCase()));
+                    }
+                    else
+                    {
+                        throw new IllegalArgumentException("invalid init parameter name: " + initParameter); // let's stay pedantic here
+                    }
+                }
+            }
+        }
+
+    }
+
     /**
-     * Set the ServletContext used by all ServletContextLogger objects.  This
-     * should be done in a ServletContextListener, e.g. ServletContextLoggerSCL.
+     * <p>Set the ServletContext used by all ServletContextLogger objects.  This
+     * should be done in a ServletContextListener, e.g. ServletContextLoggerSCL.</p>
+     * <p>Configuration is read:</p>
+     * <ul>
+     *     <li>from /WEB-INF/web.xml init parameters</li>
+     *     <li>from /WEB-INF/logger.properties</li>
+     * </ul>
+     * <p>The latter has the precedence, since it will override the former.</p>
      * 
      * @param ctx servlet context
      */
@@ -357,40 +435,18 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                     if (!initParameter.startsWith(INIT_PARAMETER_PREFIX + '.')) continue;
                     String value = context.getInitParameter(initParameter);
                     initParameter = initParameter.substring(INIT_PARAMETER_PREFIX.length() + 1);
-                    switch (initParameter)
+                    configure(initParameter, value);
+                }
+                InputStream fileConfig = ctx.getResourceAsStream("/WEB-INF/logger.properties");
+                if (fileConfig != null)
+                {
+                    Properties properties = new Properties();
+                    properties.load(fileConfig);
+                    for (Enumeration<String> keys = (Enumeration<String>)properties.propertyNames(); keys.hasMoreElements();)
                     {
-                        case "level": enabledLevel = Level.valueOf(value.toUpperCase()); break;
-                        case "format": format = new Format(value); break;
-                        case "notification":
-                        {
-                            if ("false".equals(value))
-                            {
-                                continue;
-                            }
-                            String tokens[] = value.split(":");
-                            if (tokens.length != 6)
-                            {
-                                throw new IllegalArgumentException("notifications: expecting 6 tokens: 'level:protocol:mail_server:port:from_address:to_address'");
-                            }
-                            notificationLevel = Level.valueOf(tokens[0].toUpperCase());
-                            if (!"smtp".equals(tokens[1]))
-                            {
-                                throw new UnsupportedOperationException("notifications: protocol non supported: " + tokens[1]);
-                            }
-                            mailNotifier = MailNotifier.getInstance(tokens[2], tokens[3], tokens[4], tokens[5]);
-                            mailNotifier.start();
-                            break;
-                        }
-                        default:
-                        {
-                            Matcher m = logLevelInitParam.matcher(initParameter);
-                            if (m.matches())
-                            {
-                                String loggerName = m.group(1);
-                                explicitLevels.put(loggerName, Level.valueOf(value.toUpperCase()));
-                            }
-                            else throw new IllegalArgumentException("invalid init parameter name: " + INIT_PARAMETER_PREFIX + "." + initParameter);
-                        }
+                        String initParameter = keys.nextElement();
+                        String value = properties.getProperty(initParameter);
+                        configure(initParameter, value);
                     }
                 }
             }
@@ -463,7 +519,6 @@ public final class ServletContextLogger extends MarkerIgnoringBase
         return (context != null && mailNotifier != null && level.getValue() >= notificationLevel.getValue());
     }
 
-
     private void log(Level level, String message, Throwable t)
     {
         if (!isLevelEnabled(level)) return;
@@ -487,6 +542,10 @@ public final class ServletContextLogger extends MarkerIgnoringBase
             }
             else
             {
+                if (stackTraceStripper != null)
+                {
+                    stackTraceStripper.strip(t);
+                }
                 context.log(formatted, t);
             }
             if (triggersNotification(level))
