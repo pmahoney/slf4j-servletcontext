@@ -1,0 +1,14 @@
+WebApp SLF4J Logger
+Copyright 2015 The Apache Software Fundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This software contains code derived from commongroundpublishing.com
+(https://github.com/pmahoney/slf4j-servletcontext),
+dual-licensed under the EPL v1.0 and the LGPL 2.1.
+
+This software contains code derived from the Logback project
+(http://logback.qos.ch/), dual-licensed under the EPL v1.0 and the LGPL 2.1.
+
+
