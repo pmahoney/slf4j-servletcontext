@@ -56,7 +56,7 @@ public class MailNotifier
         config.put("smtp.user", env.get("SMTP_USER"));
         config.put("smtp.password", env.get("SMTP_PASSWORD"));
         smtpLoop = new SmtpLoop(config);
-        smtpLoop.run();
+        new Thread(smtpLoop, "smtp-loop").start();
     }
 
     public boolean isRunning()
