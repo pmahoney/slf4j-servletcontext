@@ -171,15 +171,24 @@ format = %logger [%level] [%ip] %message
 The logger can be configured to send an email if severity is beyond a certain level (typically, warning or error). The configuration parameter is of the form:
 
 ```properties
-notification = *level*:*protocol*:*mail_server*:*port*:*from_address*:*to_address*
+notification = *level*:*from_address*:*to_address*
 ```
 
-The only protocol supported for now is smtp.
+The server, port, user and password are expected to be found in the environment as:
+
+```
+SMTP_HOST
+SMTP_PORT
+SMTP_USER
+SMTP_PASSWORD
+```
+
+The `starttls` protocol is expected.
 
 Example:
 
 ```properties
-notification = warn:smtp:mail.server:25:from@address:to@address
+notification = warn:from@address:to@address
 ```
 
 You can also set this parameter to `false` to disable the notifications. Compared to just removing the parameter, it's useful if you are generating your webapp descriptor from, let say, filtered maven resources.

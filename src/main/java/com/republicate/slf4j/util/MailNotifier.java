@@ -1,22 +1,21 @@
 package com.republicate.slf4j.util;
 
+import java.io.IOException;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Properties;
 
-import org.apache.commons.net.smtp.SMTPClient;
-import org.apache.commons.net.smtp.SMTPReply;
-import org.apache.commons.net.smtp.SimpleSMTPHeader;
-
+import com.republicate.mailer.EmailSender;
+import com.republicate.mailer.SmtpLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MailNotifier implements Runnable
+public class MailNotifier
 {
-    private String host;
-    private int port;
     private String sender;
     private String recipient;
-    private LinkedList<Notification> queue = new LinkedList<Notification>();
     private boolean running = false;
+    private SmtpLoop smtpLoop = null;
 
     class Notification
     {
@@ -30,126 +29,48 @@ public class MailNotifier implements Runnable
         }
     }
 
-    private MailNotifier(String host, String port, String sender, String recipient)
+    private MailNotifier(String sender, String recipient)
     {
-        this.host = host;
-        this.port = Integer.valueOf(port);
         this.sender = sender;
         this.recipient = recipient;
     }
 
     public static MailNotifier singleton = null;
 
-    public static MailNotifier getInstance(String host, String port, String sender, String recipient)
+    public static MailNotifier getInstance(String sender, String recipient)
     {
         // TODO - could return a different instance for each set of parameters
         if (singleton == null)
         {
-            singleton = new MailNotifier(host, port, sender, recipient);
+            singleton = new MailNotifier(sender, recipient);
         }
         return singleton;
     }
 
     public void start()
     {
-        new Thread(this, "email notifications").start();
+        Map<String, String> env = System.getenv();
+        Properties config = new Properties();
+        config.put("smtp.host", env.get("SMTP_HOST"));
+        config.put("smtp.port", env.get("SMTP_PORT"));
+        config.put("smtp.user", env.get("SMTP_USER"));
+        config.put("smtp.password", env.get("SMTP_PASSWORD"));
+        smtpLoop = new SmtpLoop(config);
+        smtpLoop.run();
     }
 
     public boolean isRunning()
     {
-        return running;
+        return SmtpLoop.isRunning();
     }
 
     public void stop()
     {
-        running = false;
-        synchronized(this)
-        {
-            notify();
-        }
+        // NOP - TODO upstream in SmtpLoop
     }
 
-    public void sendNotification(String subject, String body)
+    public void sendNotification(String subject, String body) throws IOException
     {
-        synchronized(this)
-        {
-            queue.add(new Notification(subject, body));
-            notify();
-        }
-    }
-
-    public void run()
-    {
-        Notification notif;
-        SMTPClient client = null;
-
-        try
-        {
-            running = true;
-            while(running)
-            {
-                synchronized(this)
-                {
-                    if(queue.size() == 0)
-                    {
-                        wait();
-                    }
-                    notif = queue.removeFirst();
-                }
-                if(notif == null)
-                {
-                    continue;
-                }
-
-                String header = new SimpleSMTPHeader(sender, recipient, notif.subject).toString();
-
-                client = new SMTPClient();
-                client.connect(host);
-                if(!SMTPReply.isPositiveCompletion(client.getReplyCode()))
-                {
-                    throw new Exception("SMTP server " + host + " refused connection.");
-                }
-                if(!client.login())
-                {
-                    throw new Exception("SMTP: Problem logging in: error #" + client.getReplyCode() + " "
-                                        + client.getReplyString());
-                }
-                if(!client.setSender(sender))
-                {
-                    throw new Exception("SMTP: Problem setting sender to " + sender + ": error #"
-                                        + client.getReplyCode() + " " + client.getReplyString());
-                }
-                if(!client.addRecipient(recipient))
-                {
-                    throw new Exception("SMTP: Problem adding recipient " + recipient + ": error #"
-                                        + client.getReplyCode() + " " + client.getReplyString());
-                }
-                if(!client.sendShortMessageData(header + notif.body))
-                {
-                    throw new Exception("Problem sending notification : error #" + client.getReplyCode() + " "
-                                        + client.getReplyString());
-                }
-                try
-                {
-                    client.logout();
-                    client.disconnect();
-                }
-                catch(Exception e) {}
-            }
-        }
-        catch(Exception e)
-        {
-            try
-            {
-                if(client != null)
-                {
-                    client.logout();
-                    client.disconnect();
-                }
-            }
-            catch(Exception f) {}
-
-            LoggerFactory.getLogger("MailNotifier").error("could not send notification", e);
-        }
+        EmailSender.send(sender, recipient, subject, body);
     }
 }

@@ -41,6 +41,7 @@ public class StackTraceStripper implements Serializable
         defaultUnwantedPackages.add("org.eclipse.");
         defaultUnwantedPackages.add("org.postgresql.");
         defaultUnwantedPackages.add("sun.");
+        defaultUnwantedPackages.add("jdk.");
     }
 
     public StackTraceStripper()

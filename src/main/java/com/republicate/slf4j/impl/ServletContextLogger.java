@@ -19,6 +19,7 @@
 
 package com.republicate.slf4j.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -351,20 +352,16 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                     return;
                 }
                 String tokens[] = value.split(":");
-                if (tokens.length != 6)
+                if (tokens.length != 3)
                 {
-                    throw new IllegalArgumentException("notifications: expecting 6 tokens: 'level:protocol:mail_server:port:from_address:to_address'");
+                    throw new IllegalArgumentException("notifications: expecting 3 tokens: 'level:from_address:to_address'");
                 }
                 notificationLevel = Level.valueOf(tokens[0].toUpperCase());
-                if (!"smtp".equals(tokens[1]))
-                {
-                    throw new UnsupportedOperationException("notifications: protocol non supported: " + tokens[1]);
-                }
                 if (mailNotifier != null)
                 {
                     throw new IllegalArgumentException("notifications: mailer has already been configured");
                 }
-                mailNotifier = MailNotifier.getInstance(tokens[2], tokens[3], tokens[4], tokens[5]);
+                mailNotifier = MailNotifier.getInstance(tokens[1], tokens[2]);
                 mailNotifier.start();
                 break;
             }
@@ -561,7 +558,14 @@ public final class ServletContextLogger extends MarkerIgnoringBase
                     t.printStackTrace(new PrintWriter(stack));
                     body.append(stack.toString());
                 }
-                mailNotifier.sendNotification(subject, body.toString());
+                try
+                {
+                    mailNotifier.sendNotification(subject, body.toString());
+                }
+                catch (IOException ioe)
+                {
+                    context.log("[webapp-slf4j-logger] could not send notification email: " + ioe.getMessage());
+                }
             }
         }
     }
