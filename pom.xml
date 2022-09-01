@@ -84,7 +84,7 @@ under the License.
         <dependency>
             <groupId>com.republicate</groupId>
             <artifactId>simple-mailer</artifactId>
-            <version>1.1</version>
+            <version>1.2</version>
         </dependency>
         <!-- upgrade jsoup, which has a vulnerability in 1.12.2 version, used by commons-lang3 -->
         <dependency>
