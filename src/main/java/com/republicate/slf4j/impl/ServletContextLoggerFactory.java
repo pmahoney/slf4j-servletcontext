@@ -23,12 +23,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.ILoggerFactory;
+import org.slf4j.IMarkerFactory;
 import org.slf4j.Logger;
+import org.slf4j.helpers.BasicMarkerFactory;
 
 public final class ServletContextLoggerFactory implements ILoggerFactory {
     
     final static ServletContextLoggerFactory INSTANCE =
             new ServletContextLoggerFactory();
+
+    final static IMarkerFactory MARKER_FACTORY = new BasicMarkerFactory();
 
     private final Map<String,Logger> map;
 

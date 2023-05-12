@@ -19,8 +19,11 @@
 
 package com.republicate.slf4j.impl;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.spi.MDCAdapter;
 
@@ -52,12 +55,13 @@ public class MDCStore implements MDCAdapter
      * <p>If the current thread does not have a context map it is created as a side
      * effect of this call.
      */
+    @Override
     public void put(String key, String val)
     {
         Map<String, String> map = store.get();
         if (map == null)
         {
-            map = new HashMap<String, String>();
+            map = new HashMap<>();
             store.set(map);
         }
         map.put(key, val);
@@ -69,6 +73,7 @@ public class MDCStore implements MDCAdapter
      * 
      * @return the string value identified by the <code>key</code> parameter.
      */
+    @Override
     public String get(String key)
     {
         Map<String, String> map = store.get();
@@ -83,6 +88,7 @@ public class MDCStore implements MDCAdapter
      * This method does nothing if there is no previous value 
      * associated with <code>key</code>.
      */
+    @Override
     public void remove(String key)
     {
         Map<String, String> map = store.get();
@@ -95,6 +101,7 @@ public class MDCStore implements MDCAdapter
     /**
      * Clear all entries in the MDC.
      */
+    @Override
     public void clear()
     {
         Map<String, String> map = store.get();
@@ -110,6 +117,7 @@ public class MDCStore implements MDCAdapter
      * 
      * @return A copy of the current thread's context map. May be null.
      */
+    @Override
     public Map<String, String> getCopyOfContextMap()
     {
         Map<String, String> map = store.get();
@@ -123,11 +131,82 @@ public class MDCStore implements MDCAdapter
      * 
      * @param contextMap must contain only keys and values of type String
      */
+    @Override
     public void setContextMap(Map<String, String> contextMap)
     {
         store.set(new HashMap(contextMap));
     }
 
-    private ThreadLocal<Map<String, String>> store = new ThreadLocal<Map<String, String>>();
+    /**
+     * Push a value into the deque(stack) referenced by 'key'.
+     *
+     * @param key identifies the appropriate stack
+     * @param value the value to push into the stack
+     * @since 3.0
+     */
+    @Override
+    public void pushByKey(String key, String value) {
+        Map<String, Deque<String>> map = dequesStore.get();
+        if (map == null)
+        {
+            map = new HashMap<>();
+            dequesStore.set(map);
+        }
+        Deque<String> deque = map.computeIfAbsent(key, (k) -> new ArrayDeque<>());
+        deque.push(value);
+    }
+
+    /**
+     * Pop the stack referenced by 'key' and return the value possibly null.
+     *
+     * @param key identifies the deque(stack)
+     * @return the value just popped. May be null/
+     * @since 2.0.0
+     */
+    @Override
+    public String popByKey(String key) {
+        Map<String, Deque<String>> map = dequesStore.get();
+        if (map != null)
+        {
+            Deque<String> deque = map.get(key);
+            if (deque != null) return deque.pollFirst();
+        }
+        return null;
+    }
+
+    /**
+     * Returns a copy of the deque(stack) referenced by 'key'. May be null.
+     *
+     * @param key identifies the  stack
+     * @return copy of stack referenced by 'key'. May be null.
+     *
+     * @since 3.0
+     */
+    @Override
+    public Deque<String> getCopyOfDequeByKey(String key) {
+        Map<String, Deque<String>> map = dequesStore.get();
+        if (map != null) return map.get(key);
+        return null;
+    }
+
+    /**
+     * Clear the deque(stack) referenced by 'key'.
+     *
+     * @param key identifies the  stack
+     *
+     * @since 3.0
+     */
+    @Override
+    public void clearDequeByKey(String key) {
+        Map<String, Deque<String>> map = dequesStore.get();
+        if (map != null)
+        {
+            Deque<String> deque = map.get(key);
+            if (deque != null) deque.clear();
+        }
+    }
+
+    private ThreadLocal<Map<String, String>> store = new ThreadLocal<>();
+    private ThreadLocal<Map<String, Deque<String>>> dequesStore = new ThreadLocal<>();
 
 }
