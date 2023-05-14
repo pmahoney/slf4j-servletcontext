@@ -23,7 +23,7 @@ public class ServletContextLoggerServiceProvider implements SLF4JServiceProvider
 
     @Override
     public String getRequestedApiVersion() {
-        return "2.0.1";
+        return "2.0.4";
     }
 
     @Override
